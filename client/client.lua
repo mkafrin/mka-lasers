@@ -89,6 +89,10 @@ function Laser.new(originPoint, targetPoints, options)
       local deltaTime = 0
       local fromIndex = 1
       local toIndex = 2
+      if randomTargetSelection then
+        fromIndex = math.random(1, #targetPoints)
+        toIndex = getNextToIndex(fromIndex, #targetPoints, randomTargetSelection)
+      end
       local waiting = false
       local waitTime = 0
       local currentTravelTime = randomFloat(minTravelTimeBetweenTargets, maxTravelTimeBetweenTargets)
