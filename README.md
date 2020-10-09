@@ -46,4 +46,5 @@ Laser's have a few functions that can be useful for manipulating the laser after
 `setVisible(bool)` - Sets the visibility of the laser \
 `getMoving()` - Returns whether the laser is moving or not \
 `setMoving(bool)` - Sets whether the laser is moving or not \
-`setColor(int, int, int, int)` - Sets the color of the laser using red, green, blue, and alpha
+`getColor()` - Returns the color of the laser as red, green, blue, and alpha (rgba) \
+`setColor(int, int, int, int)` - Sets the color of the laser using red, green, blue, and alpha (rgba)
