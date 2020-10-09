@@ -61,7 +61,7 @@ function Laser.new(originPoint, targetPoints, options)
   function self.setActive(toggle)
     if active == toggle then return end
     active = toggle
-    if active then startLaser() end
+    if active then self._startLaser() end
   end
 
   function self.getVisible() return visible end
@@ -84,7 +84,7 @@ function Laser.new(originPoint, targetPoints, options)
     r, g, b, a = _r, _g, _b, _a
   end
 
-  function startLaser()
+  function self._startLaser()
     Citizen.CreateThread(function ()
       local deltaTime = 0
       local fromIndex = 1
