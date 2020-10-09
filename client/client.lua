@@ -85,45 +85,58 @@ function Laser.new(originPoint, targetPoints, options)
   end
 
   function self._startLaser()
-    Citizen.CreateThread(function ()
-      local deltaTime = 0
-      local fromIndex = 1
-      local toIndex = 2
-      if randomTargetSelection then
-        fromIndex = math.random(1, #targetPoints)
-        toIndex = getNextToIndex(fromIndex, #targetPoints, randomTargetSelection)
-      end
-      local waiting = false
-      local waitTime = 0
-      local currentTravelTime = randomFloat(minTravelTimeBetweenTargets, maxTravelTimeBetweenTargets)
-      while active do
-        local fromPoint = targetPoints[fromIndex]
-        local toPoint = targetPoints[toIndex]
-        local currentPoint = calculateCurrentPoint(fromPoint, toPoint, deltaTime, currentTravelTime)
-        local currentDirection = norm(currentPoint - originPoint)
-        if visible then
-          local destination = originPoint + currentDirection * maxDistance
-          drawLaser(originPoint, destination, r, g, b, a)
-        end
-        if moving and not waiting then
-          if #(toPoint - currentPoint) < 0.001 then
-            deltaTime = 0
-            fromIndex = toIndex
-            toIndex = getNextToIndex(fromIndex, #targetPoints, randomTargetSelection)
-            currentTravelTime = randomFloat(minTravelTimeBetweenTargets, maxTravelTimeBetweenTargets)
-            if minWaitTimeAtTargets > 0.0 or maxWaitTimeAtTargets > 0.0 then
-              waiting = true
-              waitTime = randomFloat(minWaitTimeAtTargets, maxWaitTimeAtTargets) * 1000
-            end
+    if #targetPoints == 1 then
+      Citizen.CreateThread(function ()
+        local direction = norm(targetPoints[1] - originPoint)
+        local destination = originPoint + direction * maxDistance
+        while active do
+          if visible then
+            drawLaser(originPoint, destination, r, g, b, a)
           end
-          deltaTime = deltaTime + (GetFrameTime() * 1000)
-        elseif waiting then
-          waitTime = waitTime - (GetFrameTime() * 1000)
-          if waitTime <= 0.0 then waiting = false end
+          Wait(0)
         end
-        Wait(0)
-      end
-    end)
+      end)
+    else
+      Citizen.CreateThread(function ()
+        local deltaTime = 0
+        local fromIndex = 1
+        local toIndex = 2
+        if randomTargetSelection then
+          fromIndex = math.random(1, #targetPoints)
+          toIndex = getNextToIndex(fromIndex, #targetPoints, randomTargetSelection)
+        end
+        local waiting = false
+        local waitTime = 0
+        local currentTravelTime = randomFloat(minTravelTimeBetweenTargets, maxTravelTimeBetweenTargets)
+        while active do
+          local fromPoint = targetPoints[fromIndex]
+          local toPoint = targetPoints[toIndex]
+          local currentPoint = calculateCurrentPoint(fromPoint, toPoint, deltaTime, currentTravelTime)
+          local currentDirection = norm(currentPoint - originPoint)
+          if visible then
+            local destination = originPoint + currentDirection * maxDistance
+            drawLaser(originPoint, destination, r, g, b, a)
+          end
+          if moving and not waiting then
+            if #(toPoint - currentPoint) < 0.001 then
+              deltaTime = 0
+              fromIndex = toIndex
+              toIndex = getNextToIndex(fromIndex, #targetPoints, randomTargetSelection)
+              currentTravelTime = randomFloat(minTravelTimeBetweenTargets, maxTravelTimeBetweenTargets)
+              if minWaitTimeAtTargets > 0.0 or maxWaitTimeAtTargets > 0.0 then
+                waiting = true
+                waitTime = randomFloat(minWaitTimeAtTargets, maxWaitTimeAtTargets) * 1000
+              end
+            end
+            deltaTime = deltaTime + (GetFrameTime() * 1000)
+          elseif waiting then
+            waitTime = waitTime - (GetFrameTime() * 1000)
+            if waitTime <= 0.0 then waiting = false end
+          end
+          Wait(0)
+        end
+      end)
+    end
   end
 
   return self
