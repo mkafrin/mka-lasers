@@ -42,6 +42,8 @@ function Laser.new(originPoint, targetPoints, options)
 
   self.name = options.name
 
+  local collisionGranularity = 0.01
+  local collisionCache = {}
   local visible = true
   local moving = true
   local active = false
@@ -84,6 +86,37 @@ function Laser.new(originPoint, targetPoints, options)
     r, g, b, a = _r, _g, _b, _a
   end
 
+  function self._getCachedCollision(fromIndex, toIndex, fromPoint, toPoint, deltaTime, currentTravelTime)
+    local percentOfTravelTime = deltaTime / (currentTravelTime * 1000)
+    local fromCollisionTable = collisionCache[fromIndex]
+    if fromCollisionTable == nil then
+      fromCollisionTable = {}
+      collisionCache[fromIndex] = fromCollisionTable
+    end
+    local toCollisionTable = fromCollisionTable[toIndex]
+    if toCollisionTable == nil then
+      toCollisionTable = {}
+      collisionCache[fromIndex][toIndex] = toCollisionTable
+    end
+    local collisionIndex = math.floor((percentOfTravelTime / collisionGranularity) + 0.5)
+    local collisionDistance = collisionCache[fromIndex][toIndex][collisionIndex]
+    if collisionDistance == nil then
+      local delta = currentTravelTime * (collisionIndex * collisionGranularity) * 1000
+      local tempPoint = calculateCurrentPoint(fromPoint, toPoint, delta, currentTravelTime)
+      local tempDirection = norm(tempPoint - originPoint)
+      local tempDestination = originPoint + tempDirection * maxDistance
+      local handle, hit, hitPos, surfaceNormal, entity = RayCast(originPoint, tempDestination, 1 | 16)
+      if hit then
+        collisionDistance = #(hitPos - originPoint)
+        collisionCache[fromIndex][toIndex][collisionIndex] = collisionDistance
+      else
+        collisionDistance = false
+        collisionCache[fromIndex][toIndex][collisionIndex] = false
+      end
+    end
+    return collisionDistance
+  end
+
   function self._startLaser()
     if #targetPoints == 1 then
       Citizen.CreateThread(function ()
@@ -113,8 +146,15 @@ function Laser.new(originPoint, targetPoints, options)
           local toPoint = targetPoints[toIndex]
           local currentPoint = calculateCurrentPoint(fromPoint, toPoint, deltaTime, currentTravelTime)
           local currentDirection = norm(currentPoint - originPoint)
+          local collisionDistance = self._getCachedCollision(fromIndex, toIndex, fromPoint, toPoint, deltaTime, currentTravelTime)
+          local destination
+          if collisionDistance == false then
+            destination = originPoint + currentDirection * maxDistance
+          else
+            destination = originPoint + currentDirection * collisionDistance
+          end
+
           if visible then
-            local destination = originPoint + currentDirection * maxDistance
             drawLaser(originPoint, destination, r, g, b, a)
           end
           if moving and not waiting then
