@@ -13,6 +13,15 @@ local function drawLaser(origin, destination, r, g, b, a)
   DrawLine(origin, destination, r, g, b, a)
 end
 
+-- Calculates the distance where the line ('origin', 'destination') is closest to 'point'
+local function pointDistanceToLine(origin, destination, point)
+  local d = (destination - origin) / #(destination - origin)
+  local v = point - origin
+  local t = dot(v, d)
+  local P = origin + t * d
+  return #(P - point)
+end
+
 -- Calculates the linearly interpreted point along the line from "fromPoint" to "toPoint"
 -- as a percentage between deltaTime and travelTimeBetweenTargets
 local function calculateCurrentPoint(fromPoint, toPoint, deltaTime, travelTimeBetweenTargets)
@@ -113,8 +122,15 @@ function Laser.new(originPoint, targetPoints, options)
           local toPoint = targetPoints[toIndex]
           local currentPoint = calculateCurrentPoint(fromPoint, toPoint, deltaTime, currentTravelTime)
           local currentDirection = norm(currentPoint - originPoint)
+          local destination = originPoint + currentDirection * maxDistance
+          local playerDistToLaser = pointDistanceToLine(originPoint, destination, GetEntityCoords(PlayerPedId()))
+          if playerDistToLaser < 0.5 then
+            handle, hit, hitPos, surfaceNormal, entity = RayCast(originPoint, destination, 1 | 8 | 16)
+            if hit ~= 0 and entity == PlayerPedId() then
+              destination = hitPos
+            end
+          end
           if visible then
-            local destination = originPoint + currentDirection * maxDistance
             drawLaser(originPoint, destination, r, g, b, a)
           end
           if moving and not waiting then
