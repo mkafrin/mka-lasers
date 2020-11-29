@@ -61,7 +61,10 @@ function Laser.new(originPoint, targetPoints, options)
   function self.setActive(toggle)
     if active == toggle then return end
     active = toggle
-    if active then self._startLaser() end
+    if active then
+      if type(originPoint) == "vector3" then self._startLaser()
+      elseif type(originPoint) == "table" then self._startMultiOriginLaser() end
+    end
   end
 
   function self.getVisible() return visible end
@@ -137,6 +140,56 @@ function Laser.new(originPoint, targetPoints, options)
         end
       end)
     end
+  end
+
+  function self._startMultiOriginLaser()
+    assert(#originPoint == #targetPoints, "Multi-origin laser must have same number of origin and target points")
+    assert(#originPoint > 1 and #targetPoints > 1, "Multi-origin laser must have more than one origin and target points")
+
+    Citizen.CreateThread(function ()
+      local deltaTime = 0
+      local fromIndex = 1
+      local toIndex = 2
+      local step = 1
+      local waiting = false
+      local waitTime = 0
+      local currentTravelTime = randomFloat(minTravelTimeBetweenTargets, maxTravelTimeBetweenTargets)
+      while active do
+        local fromTargetPoint = targetPoints[fromIndex]
+        local toTargetPoint = targetPoints[toIndex]
+        local currentTargetPoint = calculateCurrentPoint(fromTargetPoint, toTargetPoint, deltaTime, currentTravelTime)
+        local fromOriginPoint = originPoint[fromIndex]
+        local toOriginPoint = originPoint[toIndex]
+        local currentOriginPoint = calculateCurrentPoint(fromOriginPoint, toOriginPoint, deltaTime, currentTravelTime)
+
+        if visible then
+          drawLaser(currentOriginPoint, currentTargetPoint, r, g, b, a)
+        end
+        if moving and not waiting then
+          if #(currentTargetPoint - toTargetPoint) < 0.001 then
+            deltaTime = 0
+            if toIndex == 1 or toIndex == #originPoint then
+              step = step * -1
+              fromIndex = toIndex
+              toIndex = fromIndex + step
+            else
+              fromIndex = fromIndex + step
+              toIndex = toIndex + step
+            end
+            currentTravelTime = randomFloat(minTravelTimeBetweenTargets, maxTravelTimeBetweenTargets)
+            if minWaitTimeAtTargets > 0.0 or maxWaitTimeAtTargets > 0.0 then
+              waiting = true
+              waitTime = randomFloat(minWaitTimeAtTargets, maxWaitTimeAtTargets) * 1000
+            end
+          end
+          deltaTime = deltaTime + (GetFrameTime() * 1000)
+        elseif waiting then
+          waitTime = waitTime - (GetFrameTime() * 1000)
+          if waitTime <= 0.0 then waiting = false end
+        end
+        Wait(0)
+      end
+    end)
   end
 
   return self
