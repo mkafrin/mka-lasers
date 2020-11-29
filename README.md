@@ -6,9 +6,9 @@ Create moving lasers in FiveM!
 ## Creation
 Creating new lasers is simple. The `/lasers` command takes three possible sub-commands (start, end, save).
 
-To start creating a new laser, use the command `/lasers start`. A green sphere will appear where you are looking in-game. This is the laser's "origin point" (where the laser will start). You can press E to select that point.
+To start creating a new laser, use the command `/lasers start`. A green sphere will appear where you are looking in-game. This is the laser's "origin point" (where the laser will start). You can press E to select that point. You can have multiple origin points, which enables situations where you have a laser moving back and forth between multiple origin-target point pairs. To place more than one origin point just keep pressing E to add more points.
 
-After selecting the laser's origin point, the sphere will turn red, indicating you are now in target point selection mode. You can press E to place a point, but this time, you can place however many you want. These points are the "targets" that your laser will point to. The laser can either follow these points in order, or randomly, so make sure to place them in the order you want!
+To switch to target point selection mode, press the X key, and the sphere will turn red. You can press E to place a point. Just like origin points, you can place as many target points as you want, however if you have multiple origin points, you must have the same number of target points. These points are the "targets" that your laser will point to. The laser can either follow these points in order, or randomly (only available if you have a single origin point), so make sure to place them in the order you want!
 
 Once you are done selecting the target points, use `/lasers save` to save the created laser. You will be asked to input a name, and then the generated code for the newly created laser will be in the "lasers.txt" file in the resource's folder.
 
