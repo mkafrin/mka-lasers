@@ -22,7 +22,16 @@ function parseLaser(laser)
   local out = printoutHeader(laser.name)
   out = out .. "Laser.new(\n"
   -- Origin point
-  out = out .. "  " .. roundVec(laser.originPoint, 3) .. ",\n"
+  if #laser.originPoints == 1 then
+    out = out .. "  " .. roundVec(laser.originPoints[1], 3) .. ",\n"
+  else
+    out = out .. "  {"
+    for i, originPoint in ipairs(laser.originPoints) do
+      out = out .. roundVec(originPoint, 3)
+      if i < #laser.originPoints then out = out .. ", " end
+    end
+    out = out .. "},\n"
+  end
   -- Target points
   out = out .. "  {"
   for i, targetPoint in ipairs(laser.targetPoints) do
@@ -33,8 +42,10 @@ function parseLaser(laser)
   -- Options
   out = out .. "  {"
   out = out .. string.format("travelTimeBetweenTargets = {%s, %s}, ", tostring(round(laser.travelTimeBetweenTargets[1], 3)), tostring(round(laser.travelTimeBetweenTargets[2], 3)))
-  out = out .. string.format("waitTimeAtTargets = {%s, %s}, ", tostring(round(laser.waitTimeAtTargets[1], 3)), tostring(round(laser.waitTimeAtTargets[2], 3)))
-  out = out .. "randomTargetSelection = " .. tostring(laser.randomTargetSelection)
+  out = out .. string.format("waitTimeAtTargets = {%s, %s}", tostring(round(laser.waitTimeAtTargets[1], 3)), tostring(round(laser.waitTimeAtTargets[2], 3)))
+  if #laser.originPoints == 1 then
+    out = out .. ", randomTargetSelection = " .. tostring(laser.randomTargetSelection)
+  end
   if laser.name then
     out = out .. string.format(', name = "%s"', tostring(laser.name))
   end
