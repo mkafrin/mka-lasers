@@ -56,6 +56,7 @@ function Laser.new(originPoint, targetPoints, options)
   local waitTimeAtTargets = options.waitTimeAtTargets or {}
   local minWaitTimeAtTargets = waitTimeAtTargets ~= nil and waitTimeAtTargets[1] or 0.0
   local maxWaitTimeAtTargets = waitTimeAtTargets ~= nil and waitTimeAtTargets[2] or 0.0
+  local onPlayerHitCb, playerBeingHit = nil, false
 
   function self.getActive() return active end
   function self.setActive(toggle)
@@ -87,6 +88,25 @@ function Laser.new(originPoint, targetPoints, options)
     r, g, b, a = _r, _g, _b, _a
   end
 
+  function self.onPlayerHit(cb)
+    onPlayerHitCb = cb
+    playerBeingHit = false
+  end
+
+  function self.clearOnPlayerHit()
+    onPlayerHitCb = nil
+    playerBeingHit = false
+  end
+
+  function self._onPlayerHitTest(origin, destination)
+    local _, hit, hitPos, _, hitEntity = RayCast(origin, destination, 12)
+    local newPlayerBeingHit = hit and hitEntity == PlayerPedId()
+    if newPlayerBeingHit ~= playerBeingHit then
+      playerBeingHit = newPlayerBeingHit
+      onPlayerHitCb(playerBeingHit, hitPos)
+    end
+  end
+
   function self._startLaser()
     if #targetPoints == 1 then
       Citizen.CreateThread(function ()
@@ -95,6 +115,9 @@ function Laser.new(originPoint, targetPoints, options)
         while active do
           if visible then
             drawLaser(originPoint, destination, r, g, b, a)
+            if onPlayerHitCb then
+              self._onPlayerHitTest(originPoint, destination)
+            end
           end
           Wait(0)
         end
@@ -119,6 +142,9 @@ function Laser.new(originPoint, targetPoints, options)
           if visible then
             local destination = originPoint + currentDirection * maxDistance
             drawLaser(originPoint, destination, r, g, b, a)
+            if onPlayerHitCb then
+              self._onPlayerHitTest(originPoint, destination)
+            end
           end
           if moving and not waiting then
             if #(toPoint - currentPoint) < 0.001 then
@@ -164,6 +190,9 @@ function Laser.new(originPoint, targetPoints, options)
 
         if visible then
           drawLaser(currentOriginPoint, currentTargetPoint, r, g, b, a)
+          if onPlayerHitCb then
+            self._onPlayerHitTest(currentOriginPoint, currentTargetPoint)
+          end
         end
         if moving and not waiting then
           if #(currentTargetPoint - toTargetPoint) < 0.001 then
