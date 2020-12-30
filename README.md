@@ -12,7 +12,7 @@ To switch to target point selection mode, press the X key, and the sphere will t
 
 Once you are done selecting the target points, use `/lasers save` to save the created laser. You will be asked to input a name, and then the generated code for the newly created laser will be in the "lasers.txt" file in the resource's folder.
 
-## How to use
+## How to Use
 To use your newly created laser, you need to do two things.
 
 1. Import mka-lasers into the resource you want to use it in. You can do this by adding the following to your resource's __resource.lua or fxmanifest.lua file.
@@ -36,8 +36,25 @@ client_scripts {
 | maxDistance              | Float   | 20.0                                                                            | false    | Maximum distance of the laser.                                                                                                                                                                                                                                               |
 | color                    | Table   | {255, 0, 0, 255}                                                                | false    | Color of the laser in rgba format (red, blue, green, alpha). This has to be a table of four integers representing each of the four colors in rgba.                                                                                                                           |
 
+## onPlayerHit
+onPlayerHit is a function on a laser which will call the given callback function anytime the laser goes from not hitting a player to hitting them, and vice-versa.
+### Using onPlayerHit
+```lua
+laser.onPlayerHit(function(playerBeingHit, hitPos)
+    if playerBeingHit then
+        -- Laser just hit the player
+    else
+        -- Laser just stopped hitting the player
+        -- hitPos will just be a zero vector here
+    end
+end)
 
-## Laser functions
+-- You can clear out onPlayerHit by just calling clearOnPlayerHit()
+laser.clearOnPlayerHit()
+```
+
+
+## Other Laser Functions
 Laser's have a few functions that can be useful for manipulating the laser after you create it. They are as follows:
 
 `getActive()` - Returns the active state of the laser (if it's on or off) \
@@ -48,3 +65,5 @@ Laser's have a few functions that can be useful for manipulating the laser after
 `setMoving(bool)` - Sets whether the laser is moving or not \
 `getColor()` - Returns the color of the laser as red, green, blue, and alpha (rgba) \
 `setColor(int, int, int, int)` - Sets the color of the laser using red, green, blue, and alpha (rgba)
+
+
