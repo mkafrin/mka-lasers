@@ -23,6 +23,7 @@ client_scripts {
 }
 ```
 2. Paste the generated code for your laser from the "lasers.txt" file anywhere in your resource.
+3. Call setActive(true) on the laser(s) to turn them on.
 
 
 ## Laser Options
