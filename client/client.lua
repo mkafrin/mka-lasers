@@ -47,6 +47,8 @@ function Laser.new(originPoint, targetPoints, options)
   local active = false
   local r, g, b, a = 255, 0, 0, 255
   if options.color then r, g, b, a = table.unpack(options.color) end
+  local extensionEnabled = true
+  if options.extensionEnabled ~= nil then extensionEnabled = options.extensionEnabled end
   local randomTargetSelection = true
   if options.randomTargetSelection ~= nil then randomTargetSelection = options.randomTargetSelection end
   local maxDistance = options.maxDistance or 20.0
@@ -140,7 +142,10 @@ function Laser.new(originPoint, targetPoints, options)
           local currentPoint = calculateCurrentPoint(fromPoint, toPoint, deltaTime, currentTravelTime)
           local currentDirection = norm(currentPoint - originPoint)
           if visible then
-            local destination = originPoint + currentDirection * maxDistance
+            local destination = currentPoint
+            if extensionEnabled then
+              destination = originPoint + currentDirection * maxDistance
+            end
             drawLaser(originPoint, destination, r, g, b, a)
             if onPlayerHitCb then
               self._onPlayerHitTest(originPoint, destination)
