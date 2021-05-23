@@ -1,7 +1,8 @@
 Laser = {}
 
+local ShapeTestRay = StartShapeTestRay or StartExpensiveSynchronousShapeTestLosProbe
 local function RayCast(origin, destination, flags)
-  local ray = StartShapeTestRay(origin.x, origin.y, origin.z, destination.x, destination.y, destination.z, flags, nil, 0)
+  local ray = ShapeTestRay(origin.x, origin.y, origin.z, destination.x, destination.y, destination.z, flags, nil, 0)
   return GetShapeTestResult(ray)
 end
 
